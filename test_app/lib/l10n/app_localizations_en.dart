@@ -144,6 +144,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get birthdayHint => 'Tap to select birthday';
 
   @override
+  String get simplePhoneLabel => 'Phone';
+
+  @override
   String get phoneLabel => 'Phone (Optional)';
 
   @override
@@ -294,4 +297,37 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get selectEndHint => 'Select End (Optional)';
+
+  @override
+  String get appointmentsSummaryTitle => 'Time Period Summary';
+
+  @override
+  String get totalAppointmentsLabel => 'Total Appointments';
+
+  @override
+  String get totalAppointmentTimeLabel => 'Total Appointment Time';
+
+  @override
+  String get minutesLabel => 'minutes';
+
+  @override
+  String get monthlyTotalsLabel => 'Monthly totals';
+
+  @override
+  String get yearlyTotalsLabel => 'Yearly totals';
+
+  @override
+  String get unknownProvider => 'Unknown';
+
+  @override
+  String get noTimeLabel => 'No time';
+
+  @override
+  String get statusLabel => 'Status';
+
+  @override
+  String get currencySymbol => '\$';
+
+  @override
+  String get dateTimeSeparator => ' • ';
 }

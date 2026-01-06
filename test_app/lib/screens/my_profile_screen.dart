@@ -25,9 +25,9 @@ class MyProfileScreen extends StatefulWidget {
 // My Profile Screen - State ==========================================================================
 class _MyProfileScreenState extends State<MyProfileScreen> {
   // States --------------------------------------------------------------
-  DateTime? _selectedBirthday;
-  bool _isLoading = false;
-  bool _isInit = true;
+  DateTime? selectedBirthday;
+  bool isLoading = false;
+  bool isInit = true;
 
   // Controllers ---------------------------------------------------------
   TextEditingController? _nameController;
@@ -44,13 +44,13 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
     final userModel = Provider.of<UserModel?>(context);
 
     // Only initialize once AND only if we have valid user data
-    if (_isInit && userModel != null) {
+    if (isInit && userModel != null) {
       _nameController = TextEditingController(text: userModel.name);
       _surnameController = TextEditingController(text: userModel.surname);
       _phoneController = TextEditingController(text: userModel.phone ?? '');
       _emailController = TextEditingController(text: userModel.email);
-      _selectedBirthday = userModel.birthday;
-      _isInit = false;
+      selectedBirthday = userModel.birthday;
+      isInit = false;
     }
   }
 
@@ -104,8 +104,10 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                         ),
                       ],
                     ),
+
                     child: Column(
                       children: [
+                        // User Icon
                         const Icon(
                           Icons.account_circle,
                           size: 80,
@@ -160,13 +162,13 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                         TextField(
                           readOnly: true,
                           controller: TextEditingController(
-                            text: _selectedBirthday == null
+                            text: selectedBirthday == null
                                 ? ''
                                 : DateFormat(
                                     'MMM d, yyyy',
                                     // Use local locale for date formatting if desired
                                     Localizations.localeOf(context).toString(),
-                                  ).format(_selectedBirthday!),
+                                  ).format(selectedBirthday!),
                           ),
                           decoration: InputDecoration(
                             labelText: l10n.birthdayLabel,
@@ -181,7 +183,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                         ),
                         const SizedBox(height: 16),
 
-                        // Email (Read Only)
+                        // Email
                         TextField(
                           controller: _emailController,
                           readOnly: true,
@@ -210,10 +212,10 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                                 borderRadius: BorderRadius.circular(8),
                               ),
                             ),
-                            onPressed: _isLoading
+                            onPressed: isLoading
                                 ? null
-                                : () => _saveProfile(l10n), // Pass l10n
-                            child: _isLoading
+                                : () => saveProfile(l10n), // Pass l10n
+                            child: isLoading
                                 ? const SizedBox(
                                     height: 20,
                                     width: 20,
@@ -240,11 +242,11 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
     );
   }
 
-  // Calendar Function
+  // Calendar Function -----------------------------------------------------
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: _selectedBirthday ?? DateTime.now(),
+      initialDate: selectedBirthday ?? DateTime.now(),
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
       builder: (context, child) {
@@ -261,19 +263,19 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
       },
     );
 
-    if (picked != null && picked != _selectedBirthday) {
+    if (picked != null && picked != selectedBirthday) {
       setState(() {
-        _selectedBirthday = picked;
+        selectedBirthday = picked;
       });
     }
   }
 
-  // Save Profile
-  Future<void> _saveProfile(AppLocalizations l10n) async {
+  // Save Profile ------------------------------------------------------------
+  Future<void> saveProfile(AppLocalizations l10n) async {
     final userModel = Provider.of<UserModel?>(context, listen: false);
     if (userModel == null || _nameController == null) return;
 
-    setState(() => _isLoading = true);
+    setState(() => isLoading = true);
 
     try {
       await FirebaseFirestore.instance
@@ -282,8 +284,8 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
           .set({
             'name': _nameController!.text,
             'surname': _surnameController!.text,
-            'birthday': _selectedBirthday != null
-                ? Timestamp.fromDate(_selectedBirthday!)
+            'birthday': selectedBirthday != null
+                ? Timestamp.fromDate(selectedBirthday!)
                 : null,
             'phone': _phoneController!.text,
             'email': _emailController!.text,
@@ -305,7 +307,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
       }
     } finally {
       setState(() {
-        _isLoading = false;
+        isLoading = false;
       });
     }
   }

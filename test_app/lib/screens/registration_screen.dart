@@ -14,7 +14,6 @@ import '../providers/locale_provider.dart';
 
 // Registration ========================================================================================
 class RegisterScreen extends StatefulWidget {
-  // Constructor
   const RegisterScreen({super.key});
 
   @override
@@ -228,7 +227,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  // Calendar Function
+  // Calendar Function ----------------------------------------------------------
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -256,7 +255,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
-  // Registration Function
+  // Registration Function ----------------------------------------------------------
   Future<void> register(AppLocalizations l10n) async {
     // Indicate Loading
     setState(() => isLoading = true);

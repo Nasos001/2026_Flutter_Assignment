@@ -45,6 +45,7 @@
     "nameLabel": "Όνομα",
     "surnameLabel": "Επίθετο",
     "birthdayHint": "Επιλέξτε ημερομηνία γέννησης",
+    "simplePhoneLabel": "Τηλέφωνο",
     "phoneLabel": "Τηλέφωνο (Προαιρετικό)",
     "repeatPasswordLabel": "Επαλήθευση Κωδικού",
     "registerButton": "Εγγραφή",
@@ -99,5 +100,16 @@
     "startDateLabel": "Ημερομηνία Έναρξης",
     "selectStartHint": "Επιλογή Έναρξης",
     "endDateLabel": "Ημερομηνία Λήξης",
-    "selectEndHint": "Επιλογή Λήξης (Προαιρετικό)"
+    "selectEndHint": "Επιλογή Λήξης (Προαιρετικό)",
+    "appointmentsSummaryTitle": "Σύνοψη Χρονικής Περιόδου",
+    "totalAppointmentsLabel": "Συνολικές Συναντήσεις",
+    "totalAppointmentTimeLabel": "Συνολικός Χρόνος Συναντήσεων",
+    "minutesLabel": "λεπτά",
+    "monthlyTotalsLabel": "Μηνιαία σύνολα",
+    "yearlyTotalsLabel": "Ετήσια σύνολα",
+    "unknownProvider": "Άγνωστο",
+    "noTimeLabel": "Χωρίς ώρα",
+    "statusLabel": "Κατάσταση",
+    "currencySymbol": "€",
+    "dateTimeSeparator": " • "
 }

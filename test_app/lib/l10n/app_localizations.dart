@@ -368,6 +368,12 @@ abstract class AppLocalizations {
   /// **'Tap to select birthday'**
   String get birthdayHint;
 
+  /// No description provided for @simplePhoneLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get simplePhoneLabel;
+
   /// No description provided for @phoneLabel.
   ///
   /// In en, this message translates to:
@@ -667,6 +673,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select End (Optional)'**
   String get selectEndHint;
+
+  /// No description provided for @appointmentsSummaryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Time Period Summary'**
+  String get appointmentsSummaryTitle;
+
+  /// No description provided for @totalAppointmentsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Appointments'**
+  String get totalAppointmentsLabel;
+
+  /// No description provided for @totalAppointmentTimeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Appointment Time'**
+  String get totalAppointmentTimeLabel;
+
+  /// No description provided for @minutesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'minutes'**
+  String get minutesLabel;
+
+  /// No description provided for @monthlyTotalsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly totals'**
+  String get monthlyTotalsLabel;
+
+  /// No description provided for @yearlyTotalsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Yearly totals'**
+  String get yearlyTotalsLabel;
+
+  /// No description provided for @unknownProvider.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get unknownProvider;
+
+  /// No description provided for @noTimeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'No time'**
+  String get noTimeLabel;
+
+  /// No description provided for @statusLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get statusLabel;
+
+  /// No description provided for @currencySymbol.
+  ///
+  /// In en, this message translates to:
+  /// **'\$'**
+  String get currencySymbol;
+
+  /// No description provided for @dateTimeSeparator.
+  ///
+  /// In en, this message translates to:
+  /// **' • '**
+  String get dateTimeSeparator;
 }
 
 class _AppLocalizationsDelegate

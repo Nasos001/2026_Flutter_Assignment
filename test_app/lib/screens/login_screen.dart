@@ -127,9 +127,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                 const SizedBox(height: 20),
 
-                Text(l10n.forgotPasswordLink),
-                const SizedBox(height: 10),
-
                 GestureDetector(
                   onTap: () {
                     Navigator.push(

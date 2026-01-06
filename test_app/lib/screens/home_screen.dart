@@ -343,7 +343,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       const Divider(),
                       const SizedBox(height: 10),
 
-                      // ------------------ Short Analysis -------------------
+                      // Short Analysis -------------------------------------
                       Text(
                         l10n.shortAnalysis,
                         style: const TextStyle(
@@ -400,7 +400,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       const Divider(),
                       const SizedBox(height: 10),
 
-                      // ------------------ Full Analysis -------------------
+                      // Full Analysis -------------------------------------
                       Text(
                         l10n.fullAnalysis,
                         style: const TextStyle(

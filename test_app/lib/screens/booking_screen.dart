@@ -56,7 +56,7 @@ class _BookingScreenState extends State<BookingScreen> {
         .doc(widget.selectedProviderData?['provider_id'])
         .get();
 
-    // Trigger the fetch for existing bookings immediately
+    // Trigger the fetch for existing bookings
     _fetchExistingAppointments();
   }
 
@@ -139,7 +139,7 @@ class _BookingScreenState extends State<BookingScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // --- SERVICE DETAILS ---
+                        // Service Details ---------------------------------------
                         Center(
                           child: Text(
                             l10n.service,
@@ -151,6 +151,7 @@ class _BookingScreenState extends State<BookingScreen> {
                         ),
                         const Divider(height: 20),
 
+                        // Name
                         Text(
                           widget.selectedServiceData?['name'] ??
                               l10n.unknownService,
@@ -161,30 +162,33 @@ class _BookingScreenState extends State<BookingScreen> {
                         ),
                         const SizedBox(height: 20),
 
+                        // Cost
                         Row(
                           children: [
                             const Icon(Icons.attach_money, color: Colors.green),
                             const SizedBox(width: 8),
                             Text(
-                              "${l10n.cost}: \$${widget.selectedServiceData?['price'] ?? widget.selectedServiceData?['Cost'] ?? '0'}",
+                              "${l10n.cost}: \$${widget.selectedProviderData?['Cost'] ?? '0'}",
                               style: const TextStyle(fontSize: 16),
                             ),
                           ],
                         ),
                         const SizedBox(height: 8),
 
+                        // Duration
                         Row(
                           children: [
                             const Icon(Icons.timer, color: Colors.orange),
                             const SizedBox(width: 8),
                             Text(
-                              "${l10n.duration}: ${widget.selectedServiceData?['duration'] ?? widget.selectedServiceData?['Min Duration'] ?? '0'} mins",
+                              "${l10n.duration}: ${widget.selectedProviderData?['Max Duration'] ?? '0'} mins",
                               style: const TextStyle(fontSize: 16),
                             ),
                           ],
                         ),
                         const SizedBox(height: 20),
 
+                        // Description
                         Text(
                           l10n.description,
                           style: const TextStyle(
@@ -201,7 +205,7 @@ class _BookingScreenState extends State<BookingScreen> {
                         ),
                         const Divider(height: 20),
 
-                        // --- PROVIDER DETAILS (Use 'data') ---
+                        // Provider Details ----------------------------------------
                         const SizedBox(height: 20),
                         Center(
                           child: Text(
@@ -214,6 +218,7 @@ class _BookingScreenState extends State<BookingScreen> {
                         ),
                         const Divider(height: 20),
 
+                        // Name
                         Text(
                           data['name'] ?? l10n.providerName,
                           style: const TextStyle(
@@ -223,18 +228,23 @@ class _BookingScreenState extends State<BookingScreen> {
                         ),
                         const SizedBox(height: 20),
 
+                        // Email
                         _buildInfoRow(
                           Icons.email,
                           l10n.emailLabel,
                           data['email'] ?? 'N/A',
                         ),
                         const SizedBox(height: 10),
+
+                        // Phone
                         _buildInfoRow(
                           Icons.phone,
-                          l10n.phoneLabel,
+                          l10n.simplePhoneLabel,
                           data['phone'] ?? 'N/A',
                         ),
                         const SizedBox(height: 10),
+
+                        // Address
                         _buildInfoRow(
                           Icons.location_on,
                           l10n.addressLabel,
@@ -242,6 +252,7 @@ class _BookingScreenState extends State<BookingScreen> {
                         ),
                         const SizedBox(height: 10),
 
+                        // Bio
                         Text(
                           l10n.bio,
                           style: const TextStyle(fontWeight: FontWeight.bold),
@@ -250,7 +261,7 @@ class _BookingScreenState extends State<BookingScreen> {
                         Text(data['bio'] ?? l10n.noBio),
                         const Divider(),
 
-                        // --- APPOINTMENT SECTION ---
+                        // Appointment Details ---
                         const SizedBox(height: 40),
                         Center(
                           child: Text(
@@ -292,6 +303,7 @@ class _BookingScreenState extends State<BookingScreen> {
                           ),
                         ),
                         const SizedBox(height: 10),
+
                         TextField(
                           readOnly: true,
                           controller: TextEditingController(
@@ -400,118 +412,7 @@ class _BookingScreenState extends State<BookingScreen> {
                                 minimumSize: const Size(200, 48),
                               ),
                               onPressed: () async {
-                                // Show Loading Indicator
-                                showDialog(
-                                  context: context,
-                                  barrierDismissible: false,
-                                  builder: (_) => const Center(
-                                    child: CircularProgressIndicator(),
-                                  ),
-                                );
-
-                                // Final Check before submission
-                                try {
-                                  // Get start of today
-                                  final startOfDay = DateTime(
-                                    selectedDate!.year,
-                                    selectedDate!.month,
-                                    selectedDate!.day,
-                                  );
-
-                                  // Get end of today
-                                  final endOfDay = startOfDay.add(
-                                    const Duration(days: 1),
-                                  );
-
-                                  // Find all submissions with the same time slot today
-                                  final QuerySnapshot
-                                  collisionCheck = await FirebaseFirestore
-                                      .instance
-                                      .collection('appointments')
-                                      .where(
-                                        'provider_id',
-                                        isEqualTo: widget
-                                            .selectedProviderData!['provider_id'],
-                                      )
-                                      .where(
-                                        'time_slot',
-                                        isEqualTo: selectedTimeSlot,
-                                      )
-                                      .where(
-                                        'date',
-                                        isGreaterThanOrEqualTo: startOfDay,
-                                      )
-                                      .where('date', isLessThan: endOfDay)
-                                      .get();
-
-                                  // If an appointment was found, inform the user
-                                  if (collisionCheck.docs.isNotEmpty) {
-                                    if (!context.mounted) return;
-                                    Navigator.pop(context); // Close Loader
-
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(l10n.errorSlotBooked),
-                                        backgroundColor: Colors.red,
-                                        duration: const Duration(seconds: 4),
-                                      ),
-                                    );
-
-                                    // Refresh the Appointments
-                                    _fetchExistingAppointments();
-                                    return;
-                                  }
-
-                                  // If no same time slot was found, book the appointment
-                                  await FirebaseFirestore.instance
-                                      .collection('appointments')
-                                      .add({
-                                        'user_id': FirebaseAuth
-                                            .instance
-                                            .currentUser
-                                            ?.uid,
-                                        'date': selectedDate,
-                                        'provider_id': widget
-                                            .selectedProviderData!['provider_id'],
-                                        'provider_name':
-                                            data['name'] ??
-                                            widget
-                                                .selectedProviderData!['provider'],
-                                        'service_name':
-                                            widget.selectedServiceData?['name'],
-                                        'price':
-                                            widget
-                                                .selectedServiceData?['price'] ??
-                                            widget.selectedServiceData?['Cost'],
-                                        'time_slot': selectedTimeSlot,
-                                        'notes': _notesController.text.trim(),
-                                        'status': 'upcoming',
-                                        'created_at':
-                                            FieldValue.serverTimestamp(),
-                                      });
-
-                                  if (!context.mounted) return;
-                                  Navigator.pop(context);
-
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(l10n.successBooking),
-                                      backgroundColor: Colors.green,
-                                    ),
-                                  );
-
-                                  Navigator.pop(context, true); // Pop Screen
-                                } catch (e) {
-                                  if (!context.mounted) return;
-                                  Navigator.pop(context); // Pop Loader
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        "${l10n.errorBookingFailed}: $e",
-                                      ),
-                                    ),
-                                  );
-                                }
+                                await appointmentCreation(l10n, data);
                               },
                               child: Text(l10n.confirmButton),
                             ),
@@ -529,7 +430,116 @@ class _BookingScreenState extends State<BookingScreen> {
     );
   }
 
-  // Fetch Appointments for Provider ---------------------------------------
+  // Appointment Creation ------------------------------------------------------------------
+  Future<void> appointmentCreation(
+    AppLocalizations l10n,
+    Map<String, dynamic> data,
+  ) async {
+    // Show Loading Indicator
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    // Final Check before submission
+    try {
+      // Get start of today
+      final startOfDay = DateTime(
+        selectedDate!.year,
+        selectedDate!.month,
+        selectedDate!.day,
+      );
+
+      // Get end of today
+      final endOfDay = startOfDay.add(const Duration(days: 1));
+
+      // Find all submissions with the same time slot today
+      final QuerySnapshot collisionCheck = await FirebaseFirestore.instance
+          .collection('appointments')
+          .where(
+            'provider_id',
+            isEqualTo: widget.selectedProviderData!['provider_id'],
+          )
+          .where('time_slot', isEqualTo: selectedTimeSlot)
+          .where('date', isGreaterThanOrEqualTo: startOfDay)
+          .where('date', isLessThan: endOfDay)
+          .get();
+
+      // If an appointment was found, inform the user
+      if (collisionCheck.docs.isNotEmpty) {
+        if (!mounted) return;
+        Navigator.pop(context); // Close Loader
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.errorSlotBooked),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+
+        // Refresh the Appointments
+        _fetchExistingAppointments();
+        return;
+      }
+
+      // Extract the start time string
+      final String startTimeStr = selectedTimeSlot!.split(' - ')[0];
+      final List<String> timeParts = startTimeStr.split(':');
+
+      // Parse Hour and Minute
+      final int hour = int.parse(timeParts[0]);
+      final int minute = int.parse(timeParts[1]);
+
+      // Create the final DateTime object combining Date + Time
+      final DateTime appointmentDateTime = DateTime(
+        selectedDate!.year,
+        selectedDate!.month,
+        selectedDate!.day,
+        hour,
+        minute,
+      );
+
+      // If no same time slot was found, book the appointment
+      await FirebaseFirestore.instance.collection('appointments').add({
+        'user_id': FirebaseAuth.instance.currentUser?.uid,
+        'date': appointmentDateTime,
+        'category': widget.selectedServiceData!['category'],
+        'provider_id': widget.selectedProviderData!['provider_id'],
+        'provider_name':
+            data['name'] ?? widget.selectedProviderData!['provider'],
+        'service_name': widget.selectedServiceData?['name'],
+        'price':
+            widget.selectedServiceData?['price'] ??
+            widget.selectedServiceData?['Cost'],
+        'time_slot': selectedTimeSlot,
+        'notes': _notesController.text.trim(),
+        'status': 'upcoming',
+        'created_at': FieldValue.serverTimestamp(),
+      });
+
+      if (!mounted) return;
+      Navigator.pop(context);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.successBooking),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      Navigator.pop(context, true); // Pop Screen
+    } catch (e) {
+      if (!context.mounted) return;
+      Navigator.pop(context); // Pop Loader
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("${l10n.errorBookingFailed}: $e")));
+    }
+  }
+
+  // Fetch Appointments for Provider ---------------------------------------------------------
   Future<void> _fetchExistingAppointments() async {
     try {
       // Fetch
@@ -557,7 +567,7 @@ class _BookingScreenState extends State<BookingScreen> {
     }
   }
 
-  // Calendar Function ------------------------------------------------------
+  // Calendar Function -------------------------------------------------------------------------
   Future<void> _selectDate(BuildContext context) async {
     // The DatePicker automatically uses the context's Locale!
     final DateTime? picked = await showDatePicker(
@@ -587,7 +597,7 @@ class _BookingScreenState extends State<BookingScreen> {
     }
   }
 
-  // Get week Day ------------------------------------------------------------
+  // Get week Day --------------------------------------------------------------------------------
   String _getDayName(DateTime date) {
     const days = [
       'Monday',
@@ -601,12 +611,12 @@ class _BookingScreenState extends State<BookingScreen> {
     return days[date.weekday - 1];
   }
 
-  // Helper: Check if two dates are exactly the same day ---------------------
+  // Helper: Check if two dates are exactly the same day ------------------------------------------
   bool _isSameDay(DateTime d1, DateTime d2) {
     return d1.year == d2.year && d1.month == d2.month && d1.day == d2.day;
   }
 
-  // Helper: Convert string to time
+  // Helper: Convert string to time ---------------------------------------------------------------
   DateTime _parseTime(DateTime baseDate, String timeString) {
     final parts = timeString.split(':');
     return DateTime(
@@ -618,14 +628,14 @@ class _BookingScreenState extends State<BookingScreen> {
     );
   }
 
-  // Helper: Convert time to String
+  // Helper: Convert time to String ---------------------------------------------------------------
   String _formatTime(DateTime date) {
     String hour = date.hour.toString().padLeft(2, '0');
     String minute = date.minute.toString().padLeft(2, '0');
     return "$hour:$minute";
   }
 
-  // Generate Chips -----------------------------------------------------------
+  // Generate Chips -------------------------------------------------------------------------------
   List<String> _generateTimeSlots(
     DateTime date,
     Map<String, dynamic> providerData,
@@ -704,7 +714,7 @@ class _BookingScreenState extends State<BookingScreen> {
     return slots;
   }
 
-  // Build Row
+  // Build Row ----------------------------------------------------------------------------------
   Widget _buildInfoRow(IconData icon, String label, String value) {
     return Row(
       children: [

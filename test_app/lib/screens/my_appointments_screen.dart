@@ -76,10 +76,11 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
 
       body: Column(
         children: [
-          // --- FILTER TOGGLES ---
+          // Filter Toggles -----------------------------------------------
           Container(
             color: Colors.white.withValues(),
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+
             child: Column(
               children: [
                 SegmentedButton<String>(
@@ -121,7 +122,7 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
                   },
                 ),
 
-                // --- DATE NAVIGATION HEADER ---
+                // Date Header
                 const SizedBox(height: 12),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -162,7 +163,7 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
             ),
           ),
 
-          // --- APPOINTMENT LIST ---
+          // Appointments List ----------------------------------
           Expanded(
             child: loading
                 ? const Center(
@@ -194,11 +195,20 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
                     itemCount: currentList.length,
                     itemBuilder: (context, index) {
                       final appointment = currentList[index];
-                      // Safely format date using locale
+
+                      // 1. Define 'now' and the appointment date
+                      final now = DateTime.now();
+                      final appointmentDate = (appointment['date'] as Timestamp)
+                          .toDate();
+
+                      // 2. Calculate if it is editable (More than 12 hours away)
+                      final bool isEditable =
+                          appointmentDate.difference(now).inHours >= 12;
+
                       String dateStr = DateFormat(
                         'MMM d, yyyy',
                         Localizations.localeOf(context).toString(),
-                      ).format((appointment['date'] as Timestamp).toDate());
+                      ).format(appointmentDate);
 
                       return Card(
                         margin: const EdgeInsets.only(bottom: 16),
@@ -287,35 +297,52 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
                                 ],
                               ),
 
-                              // Actions
                               const SizedBox(height: 16),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  OutlinedButton.icon(
-                                    onPressed: () => _changeAppointment(
-                                      appointment['service_name'],
-                                      appointment['provider_id'],
-                                      appointment['id'],
-                                      l10n, // Pass l10n
+
+                              // Actions
+                              if (isEditable) ...[
+                                const Divider(),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    // Change Button
+                                    OutlinedButton.icon(
+                                      onPressed: () => _changeAppointment(
+                                        appointment['service_name'],
+                                        appointment['provider_id'],
+                                        appointment['id'],
+                                        l10n,
+                                      ),
+                                      icon: const Icon(Icons.edit, size: 18),
+                                      label: Text(l10n.changeButton),
                                     ),
-                                    icon: const Icon(Icons.edit, size: 18),
-                                    label: Text(l10n.changeButton),
+                                    const SizedBox(width: 8),
+
+                                    // Cancel Button
+                                    OutlinedButton.icon(
+                                      onPressed: () => _cancelAppointment(
+                                        appointment['id'],
+                                        l10n,
+                                      ),
+                                      icon: const Icon(Icons.delete, size: 18),
+                                      label: Text(l10n.cancelButton),
+                                      style: OutlinedButton.styleFrom(
+                                        foregroundColor: Colors.red,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ] else ...[
+                                Center(
+                                  child: Text(
+                                    "Cannot cancel within 12 hours",
+                                    style: TextStyle(
+                                      color: Colors.grey,
+                                      fontStyle: FontStyle.italic,
+                                    ),
                                   ),
-                                  const SizedBox(width: 8),
-                                  OutlinedButton.icon(
-                                    onPressed: () => _cancelAppointment(
-                                      appointment['id'],
-                                      l10n, // Pass l10n
-                                    ),
-                                    icon: const Icon(Icons.delete, size: 18),
-                                    label: Text(l10n.cancelButton),
-                                    style: OutlinedButton.styleFrom(
-                                      foregroundColor: Colors.red,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ],
                           ),
                         ),
@@ -336,7 +363,6 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
       } else if (_selectedFilter == 'Week') {
         _focusedDate = _focusedDate.add(Duration(days: step * 7));
       } else if (_selectedFilter == 'Month') {
-        // Safely increment month (handling year rollover)
         _focusedDate = DateTime(
           _focusedDate.year,
           _focusedDate.month + step,

@@ -44,6 +44,7 @@
     "nameLabel": "Name",
     "surnameLabel": "Surname",
     "birthdayHint": "Tap to select birthday",
+    "simplePhoneLabel": "Phone",
     "phoneLabel": "Phone (Optional)",
     "repeatPasswordLabel": "Repeat Password",
     "registerButton": "Register",
@@ -98,5 +99,16 @@
     "startDateLabel": "Start Date",
     "selectStartHint": "Select Start",
     "endDateLabel": "End Date",
-    "selectEndHint": "Select End (Optional)"
+    "selectEndHint": "Select End (Optional)",
+    "appointmentsSummaryTitle": "Time Period Summary",
+    "totalAppointmentsLabel": "Total Appointments",
+    "totalAppointmentTimeLabel": "Total Appointment Time",
+    "minutesLabel": "minutes",
+    "monthlyTotalsLabel": "Monthly totals",
+    "yearlyTotalsLabel": "Yearly totals",
+    "unknownProvider": "Unknown",
+    "noTimeLabel": "No time",
+    "statusLabel": "Status",
+    "currencySymbol": "$",
+    "dateTimeSeparator": " • "
 }

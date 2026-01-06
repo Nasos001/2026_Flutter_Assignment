@@ -145,6 +145,9 @@ class AppLocalizationsEl extends AppLocalizations {
   String get birthdayHint => 'Επιλέξτε ημερομηνία γέννησης';
 
   @override
+  String get simplePhoneLabel => 'Τηλέφωνο';
+
+  @override
   String get phoneLabel => 'Τηλέφωνο (Προαιρετικό)';
 
   @override
@@ -296,4 +299,37 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get selectEndHint => 'Επιλογή Λήξης (Προαιρετικό)';
+
+  @override
+  String get appointmentsSummaryTitle => 'Σύνοψη Χρονικής Περιόδου';
+
+  @override
+  String get totalAppointmentsLabel => 'Συνολικές Συναντήσεις';
+
+  @override
+  String get totalAppointmentTimeLabel => 'Συνολικός Χρόνος Συναντήσεων';
+
+  @override
+  String get minutesLabel => 'λεπτά';
+
+  @override
+  String get monthlyTotalsLabel => 'Μηνιαία σύνολα';
+
+  @override
+  String get yearlyTotalsLabel => 'Ετήσια σύνολα';
+
+  @override
+  String get unknownProvider => 'Άγνωστο';
+
+  @override
+  String get noTimeLabel => 'Χωρίς ώρα';
+
+  @override
+  String get statusLabel => 'Κατάσταση';
+
+  @override
+  String get currencySymbol => '€';
+
+  @override
+  String get dateTimeSeparator => ' • ';
 }

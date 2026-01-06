@@ -54,7 +54,7 @@ class RootApp extends StatelessWidget {
   }
 }
 
-// MyApp: The MaterialApp =============================================================================
+// MaterialApp ==========================================================================================
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -62,6 +62,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     // Listen to the Language provider
     final localeProvider = Provider.of<LocaleProvider>(context);
+
+    // Listen to the Auth Stream
     final user = Provider.of<User?>(context);
 
     return MaterialApp(

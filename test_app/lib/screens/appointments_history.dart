@@ -1,6 +1,6 @@
 // Imports ============================================================================================
 
-// Fluter
+// Flutter
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -40,7 +40,6 @@ class _AppointmentsHistoryScreenState extends State<AppointmentsHistoryScreen> {
   // Builder ----------------------------------------------------------------
   @override
   Widget build(BuildContext context) {
-    // Access Localization
     final l10n = AppLocalizations.of(context)!;
 
     // Ensure 'All' category exists
@@ -50,15 +49,27 @@ class _AppointmentsHistoryScreenState extends State<AppointmentsHistoryScreen> {
         DropdownMenuItem(value: 'All', child: Text(l10n.filterAll)),
       );
     } else {
-      // Update the label for 'All' in case language switched
       categories[0] = DropdownMenuItem(
         value: 'All',
         child: Text(l10n.filterAll),
       );
     }
 
-    // Get appointments based on filters
+    // Get filtered appointments
     final filteredAppointments = applyFilters;
+    final appointmentsPerMonth = getPerMonth(filteredAppointments);
+    final appointmentsPerYear = getPerYear(filteredAppointments);
+
+    // Sort keys
+    final sortedMonthKeys = appointmentsPerMonth.keys.toList()..sort();
+    final sortedYearKeys = appointmentsPerYear.keys.toList()..sort();
+
+    // Find total time
+    int totalMinutes = 0;
+    for (final appointment in filteredAppointments) {
+      final slot = appointment['time_slot']?.toString() ?? '';
+      totalMinutes += calculateDurationMinutes(slot);
+    }
 
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 1, 183, 207),
@@ -76,319 +87,364 @@ class _AppointmentsHistoryScreenState extends State<AppointmentsHistoryScreen> {
 
       body: loading
           ? const Center(child: CircularProgressIndicator(color: Colors.white))
-          : Column(
-              children: [
-                Container(
-                  margin: const EdgeInsets.only(top: 10, bottom: 10),
-                  padding: const EdgeInsets.all(16.0),
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black12,
-                        blurRadius: 4,
-                        offset: Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      // 1. CATEGORY DROPDOWN
-                      DropdownButtonFormField<String>(
-                        isExpanded: true,
-                        decoration: InputDecoration(
-                          labelText: l10n.category,
-                          border: const OutlineInputBorder(),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 12,
-                          ),
-                        ),
-                        initialValue: selectedCategory,
-                        items: categories,
-                        onChanged: (value) {
-                          setState(() {
-                            selectedCategory = value;
-                          });
-                        },
-                      ),
+          : CustomScrollView(
+              slivers: [
+                SliverToBoxAdapter(child: _buildFilters(context, l10n)),
 
-                      const SizedBox(height: 12),
-
-                      // START DATE
-                      TextField(
-                        readOnly: true,
-                        controller: TextEditingController(
-                          text: start == null
-                              ? ''
-                              : DateFormat(
-                                  'MMM d, yyyy',
-                                  Localizations.localeOf(context).toString(),
-                                ).format(start!),
-                        ),
-                        decoration: InputDecoration(
-                          labelText: l10n.startDateLabel,
-                          hintText: l10n.selectStartHint,
-                          suffixIcon: const Icon(
-                            Icons.calendar_today,
-                            color: Colors.teal,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          filled: true,
-                          fillColor: Colors.grey.shade50,
-                        ),
-                        onTap: () async {
-                          final pick = await _selectDate(context, start);
-                          if (pick != null) setState(() => start = pick);
-                        },
-                      ),
-
-                      const SizedBox(height: 12),
-
-                      // END DATE
-                      TextField(
-                        readOnly: true,
-                        controller: TextEditingController(
-                          text: end == null
-                              ? ''
-                              : DateFormat(
-                                  'MMM d, yyyy',
-                                  Localizations.localeOf(context).toString(),
-                                ).format(end!),
-                        ),
-                        decoration: InputDecoration(
-                          labelText: l10n.endDateLabel,
-                          hintText: l10n.selectEndHint,
-                          suffixIcon: const Icon(
-                            Icons.event,
-                            color: Colors.orange,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          filled: true,
-                          fillColor: Colors.grey.shade50,
-                        ),
-                        onTap: () async {
-                          final pick = await _selectDate(context, end);
-                          if (pick != null) setState(() => end = pick);
-                        },
-                      ),
-                    ],
+                SliverToBoxAdapter(
+                  child: _buildSummary(
+                    filteredAppointments,
+                    totalMinutes,
+                    sortedMonthKeys,
+                    appointmentsPerMonth,
+                    sortedYearKeys,
+                    appointmentsPerYear,
+                    l10n,
                   ),
                 ),
 
-                // RESULTS LIST
-                Expanded(
-                  child: filteredAppointments.isEmpty
-                      ? Center(
-                          child: Text(
-                            l10n.noAppointmentsFound,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
+                filteredAppointments.isEmpty
+                    ? SliverToBoxAdapter(
+                        child: Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(24),
+                            child: Text(
+                              l10n.noAppointmentsFound,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                              ),
                             ),
                           ),
-                        )
-                      : ListView.builder(
-                          padding: const EdgeInsets.all(8),
-                          itemCount: filteredAppointments.length,
-                          itemBuilder: (context, index) {
-                            final appointment = filteredAppointments[index];
-                            String date =
-                                DateFormat(
-                                  'MMM d, yyyy',
-                                  Localizations.localeOf(context).toString(),
-                                ).format(
-                                  (appointment['date'] as Timestamp).toDate(),
-                                );
-
-                            return Card(
-                              margin: const EdgeInsets.only(bottom: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              elevation: 4,
-                              child: Padding(
-                                padding: const EdgeInsets.all(16.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    // Service & Price
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Expanded(
-                                          child: Text(
-                                            appointment['service_name'] ??
-                                                l10n.unknownService,
-                                            style: const TextStyle(
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.teal,
-                                            ),
-                                          ),
-                                        ),
-
-                                        Text(
-                                          "\$${appointment['price'] ?? 0}",
-                                          style: const TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.green,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const Divider(height: 20),
-
-                                    // Details
-                                    Text(
-                                      "${l10n.provider}: ${appointment['provider_name'] ?? 'Unknown'}",
-                                      style: const TextStyle(fontSize: 16),
-                                    ),
-                                    const SizedBox(height: 8),
-
-                                    Text(
-                                      "$date  •  ${appointment['time_slot'] ?? 'No time'}",
-                                      style: const TextStyle(fontSize: 16),
-                                    ),
-
-                                    if (appointment['notes'] != null &&
-                                        appointment['notes']
-                                            .toString()
-                                            .isNotEmpty)
-                                      Padding(
-                                        padding: const EdgeInsets.only(
-                                          top: 16.0,
-                                        ),
-                                        child: Text(
-                                          "${l10n.notesLabel}: ${appointment['notes']}",
-                                          style: const TextStyle(
-                                            fontSize: 16,
-                                            fontStyle: FontStyle.italic,
-                                          ),
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
                         ),
-                ),
+                      )
+                    : SliverList(
+                        delegate: SliverChildBuilderDelegate((context, index) {
+                          final appointment = filteredAppointments[index];
+                          return _buildAppointmentCard(
+                            appointment,
+                            context,
+                            l10n,
+                          );
+                        }, childCount: filteredAppointments.length),
+                      ),
               ],
             ),
     );
   }
 
-  // Updated Calendar Function (Accepts an initial date)
-  Future<DateTime?> _selectDate(BuildContext context, DateTime? initial) async {
-    final DateTime? picked = await showDatePicker(
+  // Filters -------------------------------------------------------------
+  Widget _buildFilters(BuildContext context, AppLocalizations l10n) {
+    return Container(
+      margin: const EdgeInsets.only(top: 10, bottom: 10),
+      padding: const EdgeInsets.all(16),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
+      ),
+
+      child: Column(
+        children: [
+          DropdownButtonFormField<String>(
+            isExpanded: true,
+            decoration: InputDecoration(
+              labelText: l10n.category,
+              border: const OutlineInputBorder(),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 12,
+              ),
+            ),
+            initialValue: selectedCategory,
+            items: categories,
+            onChanged: (value) => setState(() => selectedCategory = value),
+          ),
+
+          const SizedBox(height: 12),
+          _buildDateField(
+            context,
+            l10n.startDateLabel,
+            l10n.selectStartHint,
+            start,
+            (d) => setState(() => start = d),
+            Icons.calendar_today,
+            Colors.teal,
+          ),
+          const SizedBox(height: 12),
+          _buildDateField(
+            context,
+            l10n.endDateLabel,
+            l10n.selectEndHint,
+            end,
+            (d) => setState(() => end = d),
+            Icons.event,
+            Colors.orange,
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Date Field -----------------------------------------------------------
+  Widget _buildDateField(
+    BuildContext context,
+    String label,
+    String hint,
+    DateTime? value,
+    Function(DateTime) onPick,
+    IconData icon,
+    Color color,
+  ) {
+    return TextField(
+      readOnly: true,
+      controller: TextEditingController(
+        text: value == null
+            ? ''
+            : DateFormat(
+                'MMM d, yyyy',
+                Localizations.localeOf(context).toString(),
+              ).format(value),
+      ),
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        suffixIcon: Icon(icon, color: color),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+        filled: true,
+        fillColor: Colors.grey.shade50,
+      ),
+      onTap: () async {
+        final pick = await _selectDate(context, value);
+        if (pick != null) onPick(pick);
+      },
+    );
+  }
+
+  // Summary ----------------------------------------------------------------
+  Widget _buildSummary(
+    List<Map<String, dynamic>> filteredAppointments,
+    int totalMinutes,
+    List<String> sortedMonthKeys,
+    Map<String, int> appointmentsPerMonth,
+    List<String> sortedYearKeys,
+    Map<String, int> appointmentsPerYear,
+    AppLocalizations l10n,
+  ) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(16),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Text(
+              l10n.appointmentsSummaryTitle,
+              style: const TextStyle(fontSize: 16),
+            ),
+          ),
+          Text(
+            "${l10n.totalAppointmentsLabel}: ${filteredAppointments.length}",
+          ),
+          Text(
+            "${l10n.totalAppointmentTimeLabel}: "
+            "$totalMinutes ${l10n.minutesLabel}",
+          ),
+          const SizedBox(height: 8),
+          Text(
+            l10n.monthlyTotalsLabel,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          for (final key in sortedMonthKeys)
+            Text("$key: ${l10n.currencySymbol}${appointmentsPerMonth[key]}"),
+          const SizedBox(height: 8),
+          Text(
+            l10n.yearlyTotalsLabel,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          for (final key in sortedYearKeys)
+            Text("$key: ${l10n.currencySymbol}${appointmentsPerYear[key]}"),
+        ],
+      ),
+    );
+  }
+
+  // Appointment Card ------------------------------------------------------
+  Widget _buildAppointmentCard(
+    Map<String, dynamic> appointment,
+    BuildContext context,
+    AppLocalizations l10n,
+  ) {
+    final date = DateFormat(
+      'MMM d, yyyy',
+      Localizations.localeOf(context).toString(),
+    ).format((appointment['date'] as Timestamp).toDate());
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 16),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 4,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    appointment['service_name'] ?? l10n.unknownService,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.teal,
+                    ),
+                  ),
+                ),
+                Text(
+                  "${l10n.currencySymbol}${appointment['price'] ?? 0}",
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green,
+                  ),
+                ),
+              ],
+            ),
+            const Divider(height: 20),
+            Text(
+              "${l10n.provider}: "
+              "${appointment['provider_name'] ?? l10n.unknownProvider}",
+            ),
+            const SizedBox(height: 8),
+            Text(
+              "$date${l10n.dateTimeSeparator}"
+              "${appointment['time_slot'] ?? l10n.noTimeLabel}",
+            ),
+            if (appointment['notes'] != null &&
+                appointment['notes'].toString().isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 16),
+                child: Text(
+                  "${l10n.notesLabel}: ${appointment['notes']}",
+                  style: const TextStyle(fontStyle: FontStyle.italic),
+                ),
+              ),
+            const SizedBox(height: 8),
+            Text("${l10n.statusLabel}: ${appointment['status']}"),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Get Appointments per month ----------------------------------------------
+  Map<String, int> getPerMonth(List<Map<String, dynamic>> apps) {
+    final results = <String, int>{};
+    for (final a in apps) {
+      final d = (a['date'] as Timestamp).toDate();
+      final key = "${d.year}-${d.month.toString().padLeft(2, '0')}";
+      results[key] = (results[key] ?? 0) + int.parse(a['price']);
+    }
+    return results;
+  }
+
+  // Get Appointments per year -----------------------------------------------
+  Map<String, int> getPerYear(List<Map<String, dynamic>> apps) {
+    final results = <String, int>{};
+    for (final a in apps) {
+      final y = (a['date'] as Timestamp).toDate().year.toString();
+      results[y] = (results[y] ?? 0) + int.parse(a['price']);
+    }
+    return results;
+  }
+
+  // Calculate duration of an appointment -------------------------------------
+  int calculateDurationMinutes(String slot) {
+    final p = slot.split('-');
+    if (p.length != 2) return 0;
+    final s = p[0].split(':');
+    final e = p[1].split(':');
+    final sm = int.parse(s[0]) * 60 + int.parse(s[1]);
+    final em = int.parse(e[0]) * 60 + int.parse(e[1]);
+    return (em - sm).clamp(0, 1440);
+  }
+
+  // Calendar ------------------------------------------------------------------
+  Future<DateTime?> _selectDate(BuildContext context, DateTime? initial) {
+    return showDatePicker(
       context: context,
       initialDate: initial ?? DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: Colors.teal,
-              onPrimary: Colors.white,
-              onSurface: Colors.teal,
-            ),
-          ),
-          child: child!,
-        );
-      },
     );
-    return picked;
   }
 
-  // Filter Logic
+  // Apply Filters --------------------------------------------------------------
   List<Map<String, dynamic>> get applyFilters {
     return allAppointments.where((appointment) {
-      // 1. Category
-      final categoryMatches =
+      // Inspect the category
+      final categoryOk =
           selectedCategory == 'All' ||
           appointment['category'] == selectedCategory;
 
-      // 2. Dates
-      bool dateMatches = true;
-      if (start != null) {
-        final appDate = (appointment['date'] as Timestamp).toDate();
+      // If no start date, then just check based on category
+      if (start == null) return categoryOk;
 
-        // Use the selected End date, OR default to Now if not picked
-        final rangeEnd = end ?? DateTime.now();
+      // Otherwise, get appointment's date
+      final date = (appointment['date'] as Timestamp).toDate();
 
-        // Inclusive check
-        dateMatches =
-            appDate.isAfter(start!.subtract(const Duration(seconds: 1))) &&
-            appDate.isBefore(rangeEnd.add(const Duration(seconds: 1)));
-      }
+      // If end date is stated, use it, otherwise, use current time
+      final endTime = end ?? DateTime.now();
 
-      return categoryMatches && dateMatches;
+      return categoryOk &&
+          date.isAfter(start!.subtract(const Duration(seconds: 1))) &&
+          date.isBefore(endTime.add(const Duration(seconds: 1)));
     }).toList();
   }
 
-  // Fetch Categories
+  // Fetch Categories from database ----------------------------------------------
   Future<void> fetchCategories() async {
-    try {
-      final QuerySnapshot response = await FirebaseFirestore.instance
-          .collection("categories")
-          .get();
+    final snap = await FirebaseFirestore.instance
+        .collection("categories")
+        .get();
 
-      List<DropdownMenuItem<String>> newItems = [];
-      newItems.addAll(
-        response.docs.map((doc) {
-          final data = doc.data() as Map<String, dynamic>;
-          final name = data['name']?.toString() ?? 'Unknown';
-          return DropdownMenuItem(value: name, child: Text(name));
-        }),
+    if (!mounted) return;
+    setState(() {
+      categories.addAll(
+        snap.docs.map(
+          (d) => DropdownMenuItem(value: d['name'], child: Text(d['name'])),
+        ),
       );
-
-      if (mounted) {
-        setState(() {
-          categories.addAll(newItems);
-        });
-      }
-    } catch (e) {
-      debugPrint("Error fetching categories: $e");
-    }
+    });
   }
 
-  // Fetch Appointments
+  // Get Appointment of the User --------------------------------------------------
   Future<void> getAppointments() async {
-    try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) {
-        if (mounted) setState(() => loading = false);
-        return;
-      }
+    // Get current user
+    final user = FirebaseAuth.instance.currentUser;
 
-      final QuerySnapshot snapshot = await FirebaseFirestore.instance
-          .collection("appointments")
-          .where('user_id', isEqualTo: user.uid)
-          .where('date', isLessThanOrEqualTo: Timestamp.now())
-          .orderBy('date', descending: true)
-          .get();
+    // Safety check
+    if (user == null) return setState(() => loading = false);
 
-      if (mounted) {
-        setState(() {
-          allAppointments = snapshot.docs.map((doc) {
-            final data = doc.data() as Map<String, dynamic>;
-            data['id'] = doc.id;
-            return data;
-          }).toList();
-          loading = false;
-        });
-      }
-    } catch (e) {
-      debugPrint("Error fetching appointments: $e");
-      if (mounted) setState(() => loading = false);
-    }
+    // Fetch
+    final snap = await FirebaseFirestore.instance
+        .collection("appointments")
+        .where('user_id', isEqualTo: user.uid)
+        .where('date', isLessThanOrEqualTo: Timestamp.now())
+        .orderBy('date', descending: true)
+        .get();
+
+    if (!mounted) return;
+    setState(() {
+      allAppointments = snap.docs
+          .map((d) => {...d.data(), 'id': d.id})
+          .toList();
+      loading = false;
+    });
   }
 }
