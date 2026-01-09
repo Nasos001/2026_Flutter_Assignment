@@ -40,47 +40,13 @@ class DefaultFirebaseOptions {
     }
   }
 
-  static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyAyTHs_vgPBbRIhrstEWssAOJOZ1J4KAjE',
-    appId: '1:762061270948:web:c519979bcb36e18b385b31',
-    messagingSenderId: '762061270948',
-    projectId: 'starter-5a5af',
-    authDomain: 'starter-5a5af.firebaseapp.com',
-    storageBucket: 'starter-5a5af.firebasestorage.app',
-  );
+  static const FirebaseOptions web = FirebaseOptions();
 
-  static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyBKu1HqqK_VYnJEBq57pohE_u-uROhCek8',
-    appId: '1:762061270948:android:773beaa350a29e23385b31',
-    messagingSenderId: '762061270948',
-    projectId: 'starter-5a5af',
-    storageBucket: 'starter-5a5af.firebasestorage.app',
-  );
+  static const FirebaseOptions android = FirebaseOptions();
 
-  static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyBViMtpnHXhf210LJtSDnAwhsxcJAs4yuI',
-    appId: '1:762061270948:ios:2cc600da9d463150385b31',
-    messagingSenderId: '762061270948',
-    projectId: 'starter-5a5af',
-    storageBucket: 'starter-5a5af.firebasestorage.app',
-    iosBundleId: 'com.example.testApp',
-  );
+  static const FirebaseOptions ios = FirebaseOptions();
 
-  static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyBViMtpnHXhf210LJtSDnAwhsxcJAs4yuI',
-    appId: '1:762061270948:ios:2cc600da9d463150385b31',
-    messagingSenderId: '762061270948',
-    projectId: 'starter-5a5af',
-    storageBucket: 'starter-5a5af.firebasestorage.app',
-    iosBundleId: 'com.example.testApp',
-  );
+  static const FirebaseOptions macos = FirebaseOptions();
 
-  static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyAyTHs_vgPBbRIhrstEWssAOJOZ1J4KAjE',
-    appId: '1:762061270948:web:96e8656f3f9591a7385b31',
-    messagingSenderId: '762061270948',
-    projectId: 'starter-5a5af',
-    authDomain: 'starter-5a5af.firebaseapp.com',
-    storageBucket: 'starter-5a5af.firebasestorage.app',
-  );
+  static const FirebaseOptions windows = FirebaseOptions();
 }
