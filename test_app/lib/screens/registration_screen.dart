@@ -52,7 +52,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
           color: Color.fromARGB(255, 82, 79, 79),
         ),
 
-        //
         actions: [
           IconButton(
             icon: const Icon(Icons.language),
