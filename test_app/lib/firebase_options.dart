@@ -40,13 +40,5 @@ class DefaultFirebaseOptions {
     }
   }
 
-  static const FirebaseOptions web = FirebaseOptions();
 
-  static const FirebaseOptions android = FirebaseOptions();
-
-  static const FirebaseOptions ios = FirebaseOptions();
-
-  static const FirebaseOptions macos = FirebaseOptions();
-
-  static const FirebaseOptions windows = FirebaseOptions();
 }
